@@ -4,17 +4,18 @@ import random as r
 import typing as t
 import time as ti
 
+import numpy as np
 import tabulate as tab
 
 
-def swap(buffer: t.List[int], i: int, j: int) -> None:
+def swap(buffer: np.array, i: int, j: int) -> None:
     """Swaps two elements in a list"""
     temp = buffer[j]
     buffer[j] = buffer[i]
     buffer[i] = temp
 
 
-def selection_sort_iterative(buffer: t.List[int]) -> None:
+def selection_sort_iterative(buffer: np.array) -> None:
     """In-place selection sort using iteration"""
     for i in reversed(range(len(buffer))):
 
@@ -23,7 +24,7 @@ def selection_sort_iterative(buffer: t.List[int]) -> None:
         swap(buffer, i, idx_largest)
 
 
-def selection_sort_recursive(buffer: t.List) -> None:
+def selection_sort_recursive(buffer: np.array) -> None:
     """In-place selection sort using iteration"""
     starting_id = len(buffer) - 1
 
@@ -40,7 +41,7 @@ def selection_sort_recursive(buffer: t.List) -> None:
     rec(starting_id)
 
 
-def get_idx_of_largest_element(buffer: t.List, end_idx: int) -> int:
+def get_idx_of_largest_element(buffer: np.array, end_idx: int) -> int:
     """Gets index of largest element with an index < end_idx + 1"""
     idx_largest = end_idx
     largest = buffer[idx_largest]
@@ -54,18 +55,18 @@ def get_idx_of_largest_element(buffer: t.List, end_idx: int) -> int:
 
 def run_sorting_fn_and_get_average_time(
         sorting_fn: t.Callable,
-        buffer: t.List,
+        buffer: np.array,
         times_to_run: int = 10
 ) -> str:
 
-    copy_buffer = c.copy(buffer)
+    copy_buffer = buffer.copy()
     sorting_fn(copy_buffer)
 
-    assert copy_buffer == sorted(buffer)
+    assert np.array_equal(copy_buffer, np.sort(buffer))
 
     times_taken = []
     for i in range(times_to_run):
-        copied_buffer = c.copy(buffer)
+        copied_buffer = buffer.copy()
 
         start = ti.time()
         sorting_fn(copied_buffer)
@@ -76,7 +77,7 @@ def run_sorting_fn_and_get_average_time(
     return format(sum(times_taken) / times_to_run, '.17f')
 
 
-def build_in_sort_wrapper(arr):
+def build_in_sort_wrapper(arr: np.array):
     """Wrapper around built in .sort() method"""
     arr.sort()
 
@@ -96,10 +97,10 @@ def run_on_different_data_set_types(
     random_data = [r.randint(-10000, 10000) for i in range(input_length)]
 
     data_set_type_to_data_set = {
-        DatasetTypeEnum.RANDOM: random_data,
-        DatasetTypeEnum.SORTED: sorted(random_data),
-        DatasetTypeEnum.REVERSE_SORTED: sorted(random_data, reverse=True),
-        DatasetTypeEnum.ALL_ELEMENTS_EQUAL: [random_data[0] for i in range(input_length)]
+        DatasetTypeEnum.RANDOM: np.array(random_data),
+        DatasetTypeEnum.SORTED: np.sort(np.array(random_data)),
+        DatasetTypeEnum.REVERSE_SORTED: np.sort(np.array(random_data))[::-1],
+        DatasetTypeEnum.ALL_ELEMENTS_EQUAL: np.array([random_data[0] for i in range(input_length)])
     }
 
     data_set = data_set_type_to_data_set[data_set_type]
