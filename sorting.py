@@ -1,9 +1,7 @@
-import copy as c
 import enum as e
 import random as r
 import typing as t
 import time as ti
-
 import numpy as np
 import tabulate as tab
 
@@ -41,6 +39,33 @@ def selection_sort_recursive(buffer: np.array) -> None:
     rec(starting_id)
 
 
+def insertion_sort_iterative(buffer: np.array) -> None:
+    """In-place insertion sort using iteration"""
+
+    for i in range(1, len(buffer)):
+        j = i
+        while j > 0 and buffer[j] < buffer[j-1]:
+            swap(buffer, j, j-1)
+            j -= 1
+
+
+def insertion_sort_recursive(buffer: np.array) -> None:
+    """In-place insertion sort using recursion"""
+
+    def sort(i: int):
+        if i == len(buffer):
+            return
+
+        j = i
+        while j > 0 and buffer[j] < buffer[j-1]:
+            swap(buffer, j, j-1)
+            j -= 1
+
+        sort(i + 1)
+
+    sort(0)
+
+
 def get_idx_of_largest_element(buffer: np.array, end_idx: int) -> int:
     """Gets index of largest element with an index < end_idx + 1"""
     idx_largest = end_idx
@@ -51,6 +76,147 @@ def get_idx_of_largest_element(buffer: np.array, end_idx: int) -> int:
             largest = buffer[j]
 
     return idx_largest
+
+
+def merge_sort_recursive(buffer: np.array) -> None:
+    """In place recursive merge sort"""
+
+    def sort(start, end) -> None:
+        if end - start < 2:
+            return
+
+        mid = int((end + start) / 2)
+
+        sort(start, mid)
+        sort(mid, end)
+        merge(buffer, start, end, mid)
+
+    sort(0, len(buffer))
+
+
+def merge_sort_iterative(buffer: np.array) -> None:
+    """In place iterative merge sort"""
+
+    starting_merge_len = 2
+
+    while starting_merge_len <= len(buffer):
+        start = 0
+        while start < len(buffer):
+            end = min(start + starting_merge_len, len(buffer))
+            mid = min(start + int(starting_merge_len/2), len(buffer))
+
+            merge(buffer, start, end, mid)
+
+            start = end
+
+        starting_merge_len *= 2
+
+    if starting_merge_len/2 < len(buffer):
+        merge(buffer, 0, len(buffer), int(starting_merge_len/2))
+
+
+def merge(buffer, start, end, mid: int) -> np.array:
+    """In place merge intervals [start, mid), [mid, end)"""
+
+    # temporarily use this array for merging, will copy back into buffer
+    merged_arr = np.array([0 for i in range(len(buffer))])
+
+    i = start
+    j = mid
+    k = start
+    while i < mid and j < end:
+        if buffer[i] < buffer[j]:
+            merged_arr[k] = buffer[i]
+            i += 1
+            k += 1
+
+        else:
+            merged_arr[k] = buffer[j]
+            j += 1
+            k += 1
+    # handle remaining parts of arrays
+    while i < mid:
+        merged_arr[k] = buffer[i]
+        i += 1
+        k += 1
+    while j < end:
+        merged_arr[k] = buffer[j]
+        j += 1
+        k += 1
+
+    # copy back into original buffer
+    for i in range(start, end):
+        buffer[i] = merged_arr[i]
+
+
+class Heap:
+    """Class representing a MaxHeap"""
+    def __init__(self, buffer):
+        self.heap = self._build_heap(buffer)
+
+    def sort(self):
+
+        sorted_heap = []
+        for idx in range(len(self.heap)):
+            largest_in_heap = self.delete()
+            sorted_heap.append(largest_in_heap)
+
+        self.heap = sorted_heap
+
+    def _build_heap(self, buffer):
+        heap = []
+
+        for el in buffer:
+            self._insert(heap, el)
+
+        return heap
+
+    def _insert(self, heap, el):
+        heap.append(el)
+
+        idx = len(heap) - 1
+
+        while idx > 0:
+            parent_idx = int(idx/2)
+
+            if heap[idx] > heap[parent_idx]:
+                self._swap(heap, idx, parent_idx)
+                idx = parent_idx
+            else:
+                break
+
+    def delete(self):
+
+        deleted_el = self.heap[0]
+        self._swap(self.heap, 0, len(self.heap) - 1)
+        self.heap.pop()
+
+        idx = 0
+        while idx < len(self.heap):
+            left_child_idx = (idx + 1) * 2 - 1
+            right_child_idx = (idx + 1) * 2
+
+            larger_child_idx = left_child_idx
+            if left_child_idx > len(self.heap) - 1:
+                break
+            if right_child_idx < len(self.heap) - 1:
+                if self.heap[right_child_idx] > self.heap[left_child_idx]:
+                    larger_child_idx = right_child_idx
+
+            if self.heap[larger_child_idx] > self.heap[idx]:
+                self._swap(self.heap, larger_child_idx, idx)
+                idx = larger_child_idx
+            else:
+                break
+
+        return deleted_el
+
+    def _swap(self, heap, idx1, idx2):
+
+        temp = heap[idx1]
+        heap[idx1] = heap[idx2]
+        heap[idx2] = temp
+
 
 
 def run_sorting_fn_and_get_average_time(
@@ -114,7 +280,7 @@ def run_on_different_data_set_types(
 def print_table() -> None:
     """Prints table of execution times for sorting algorithms"""
     rows = []
-    input_sizes = [0, 1, 2, 10, 100, 1000, 10000]
+    input_sizes = [0, 1, 2, 10, 100]
     for dataset_type in DatasetTypeEnum:
         for input_size in input_sizes:
             rows.append(
@@ -122,6 +288,10 @@ def print_table() -> None:
                     dataset_type.name, input_size,
                     run_on_different_data_set_types(selection_sort_iterative, dataset_type, input_size),
                     run_on_different_data_set_types(selection_sort_recursive, dataset_type, input_size),
+                    run_on_different_data_set_types(insertion_sort_iterative, dataset_type, input_size),
+                    run_on_different_data_set_types(insertion_sort_recursive, dataset_type, input_size),
+                    run_on_different_data_set_types(merge_sort_recursive, dataset_type, input_size),
+                    run_on_different_data_set_types(merge_sort_iterative, dataset_type, input_size),
                     run_on_different_data_set_types(build_in_sort_wrapper, dataset_type, input_size)
                 ]
             )
@@ -129,7 +299,9 @@ def print_table() -> None:
     table = tab.tabulate(
         rows,
         headers=["Dataset type", "Input Size", "Selection Sort (iterative)",
-                 "Selection Sort (recursive)", "Built-in sorted() Method"]
+                 "Selection Sort (recursive)", "Insertion Sort (iterative)",
+                 "Insertion Sort (recursive)", "Built-in sorted() Method",
+                 "Merge Sort (recursive)", "Merge Sort (iterative)"]
     )
     print(table)
 
