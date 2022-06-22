@@ -290,7 +290,7 @@ def print_table() -> None:
                     run_on_different_data_set_types(selection_sort_recursive, dataset_type, input_size),
                     run_on_different_data_set_types(insertion_sort_iterative, dataset_type, input_size),
                     run_on_different_data_set_types(insertion_sort_recursive, dataset_type, input_size),
-                    run_on_different_data_set_types(build_in_sort_wrapper, dataset_type, input_size)
+                    run_on_different_data_set_types(build_in_sort_wrapper, dataset_type, input_size),
                     run_on_different_data_set_types(merge_sort_recursive, dataset_type, input_size),
                     run_on_different_data_set_types(merge_sort_iterative, dataset_type, input_size),
                 ]
