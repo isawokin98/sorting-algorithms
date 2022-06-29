@@ -1,3 +1,4 @@
+import copy
 import enum as e
 import random as r
 import typing as t
@@ -150,7 +151,7 @@ def merge(buffer, start, end, mid: int) -> np.array:
 
 
 class Heap:
-    """Class representing a MaxHeap"""
+    """Class representing a MinHeap"""
     def __init__(self, buffer):
         self.heap = self._build_heap(buffer)
 
@@ -158,8 +159,8 @@ class Heap:
 
         sorted_heap = []
         for idx in range(len(self.heap)):
-            largest_in_heap = self.delete()
-            sorted_heap.append(largest_in_heap)
+            smallest_in_heap = self.delete()
+            sorted_heap.append(smallest_in_heap)
 
         self.heap = sorted_heap
 
@@ -177,9 +178,9 @@ class Heap:
         idx = len(heap) - 1
 
         while idx > 0:
-            parent_idx = int(idx/2)
+            parent_idx = int((idx - 1) / 2)
 
-            if heap[idx] > heap[parent_idx]:
+            if heap[idx] < heap[parent_idx]:
                 self._swap(heap, idx, parent_idx)
                 idx = parent_idx
             else:
@@ -196,16 +197,16 @@ class Heap:
             left_child_idx = (idx + 1) * 2 - 1
             right_child_idx = (idx + 1) * 2
 
-            larger_child_idx = left_child_idx
+            smaller_child_idx = left_child_idx
             if left_child_idx > len(self.heap) - 1:
                 break
-            if right_child_idx < len(self.heap) - 1:
-                if self.heap[right_child_idx] > self.heap[left_child_idx]:
-                    larger_child_idx = right_child_idx
+            if right_child_idx < len(self.heap):
+                if self.heap[right_child_idx] < self.heap[left_child_idx]:
+                    smaller_child_idx = right_child_idx
 
-            if self.heap[larger_child_idx] > self.heap[idx]:
-                self._swap(self.heap, larger_child_idx, idx)
-                idx = larger_child_idx
+            if self.heap[smaller_child_idx] < self.heap[idx]:
+                self._swap(self.heap, smaller_child_idx, idx)
+                idx = smaller_child_idx
             else:
                 break
 
@@ -218,6 +219,14 @@ class Heap:
         heap[idx2] = temp
 
 
+def heap_sort(buffer: np.array) -> None:
+    """In place heap sort"""
+    heap = Heap(buffer)
+    heap.sort()
+
+    for i in range(len(buffer)):
+        buffer[i] = heap.heap[i]
+
 
 def run_sorting_fn_and_get_average_time(
         sorting_fn: t.Callable,
@@ -228,7 +237,7 @@ def run_sorting_fn_and_get_average_time(
     copy_buffer = buffer.copy()
     sorting_fn(copy_buffer)
 
-    assert np.array_equal(copy_buffer, np.sort(buffer))
+    assert np.array_equal(copy_buffer, np.sort(buffer)), f"\n {copy_buffer} \n {np.sort(buffer)}"
 
     times_taken = []
     for i in range(times_to_run):
@@ -293,15 +302,18 @@ def print_table() -> None:
                     run_on_different_data_set_types(build_in_sort_wrapper, dataset_type, input_size),
                     run_on_different_data_set_types(merge_sort_recursive, dataset_type, input_size),
                     run_on_different_data_set_types(merge_sort_iterative, dataset_type, input_size),
+                    run_on_different_data_set_types(heap_sort, dataset_type, input_size)
                 ]
             )
 
     table = tab.tabulate(
         rows,
-        headers=["Dataset type", "Input Size", "Selection Sort (iterative)",
-                 "Selection Sort (recursive)", "Insertion Sort (iterative)",
-                 "Insertion Sort (recursive)", "Built-in sorted() Method",
-                 "Merge Sort (recursive)", "Merge Sort (iterative)"]
+        headers=[
+            "Dataset type", "Input Size", "Selection Sort (iterative)",
+             "Selection Sort (recursive)", "Insertion Sort (iterative)",
+             "Insertion Sort (recursive)", "Built-in sorted() Method",
+              "Merge Sort (recursive)", "Merge Sort (iterative)", "Heap Sort"
+         ]
     )
     print(table)
 
