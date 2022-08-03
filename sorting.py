@@ -228,6 +228,31 @@ def heap_sort(buffer: np.array) -> None:
         buffer[i] = heap.heap[i]
 
 
+def partition(array, begin, end):
+    pivot = array[begin]
+    l = begin
+    h = end - 1
+    while l < h:
+        while l < end and array[l] <= pivot:
+            l += 1
+        while begin < h and array[h] > pivot:
+            h -= 1
+        if l < h:
+           swap(array, l, h) 
+    swap(array, begin, h)
+    return h
+
+
+def quick_sort(array):
+
+    def sort(array, begin, end):
+        if begin < end:
+            pivot = partition(array, begin, end)
+            sort(array, begin, pivot)
+            sort(array, pivot+1, end)
+
+    sort(array, 0, len(array)) 
+
 def run_sorting_fn_and_get_average_time(
         sorting_fn: t.Callable,
         buffer: np.array,
@@ -302,7 +327,8 @@ def print_table() -> None:
                     run_on_different_data_set_types(build_in_sort_wrapper, dataset_type, input_size),
                     run_on_different_data_set_types(merge_sort_recursive, dataset_type, input_size),
                     run_on_different_data_set_types(merge_sort_iterative, dataset_type, input_size),
-                    run_on_different_data_set_types(heap_sort, dataset_type, input_size)
+                    run_on_different_data_set_types(heap_sort, dataset_type, input_size),
+                    run_on_different_data_set_types(quick_sort, dataset_type, input_size),
                 ]
             )
 
@@ -312,7 +338,8 @@ def print_table() -> None:
             "Dataset type", "Input Size", "Selection Sort (iterative)",
              "Selection Sort (recursive)", "Insertion Sort (iterative)",
              "Insertion Sort (recursive)", "Built-in sorted() Method",
-              "Merge Sort (recursive)", "Merge Sort (iterative)", "Heap Sort"
+              "Merge Sort (recursive)", "Merge Sort (iterative)", "Heap Sort", 
+            "Quick Sort"
          ]
     )
     print(table)
